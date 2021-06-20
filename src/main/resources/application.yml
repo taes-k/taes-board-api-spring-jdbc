@@ -1,0 +1,160 @@
+####################################################################################################
+## 공용
+####################################################################################################
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  profiles:
+    active: local
+  application:
+    name: board-api
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          public-key-location: classpath:jwt-rsa.pub
+  jpa:
+    database: mysql
+    generate-ddl: false
+    properties:
+      hibernate:
+        naming:
+          physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+          implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+        default_batch_fetch_size: 1000
+    hibernate:
+      ddl-auto: none
+  datasource:
+    initialization-mode: never
+  mail:
+    host: ${SMTP_HOST:smtp.gmail.com}
+    port: 587
+    username: ${SMTP_HOST_ADDRESS:email@gmail.com}
+    password: ${SMTP_HOST_PASSWORD:password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+logging:
+  level:
+    com:
+      taes:
+        board: info
+
+log:
+  config:
+    path: log
+    filename: board-authentication
+
+springfox:
+  documentation:
+    swagger:
+      v2:
+        use-model-v3: true
+
+eureka:
+  instance:
+    hostname: board-api
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_SERVER_NAME:board-eureka}:${EUREKA_SERVER_PORT:8761}/eureka/
+
+feign:
+  client:
+    clients:
+      hacker-news:
+        url: https://hacker-news.firebaseio.com/v0
+
+taes-board:
+  post:
+    page-size: 20
+    daily-limit: 5
+
+
+---
+
+####################################################################################################
+## local
+####################################################################################################
+
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:mysql://localhost:3306/taes_board
+    username: root
+    password: password
+
+logging:
+  level:
+    com:
+      taes:
+        board: debug
+    org:
+      hibernate:
+        SQL: debug
+        type:
+          descriptor:
+            sql:
+              BasicBinder: debug
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_SERVER_NAME:localhost}:${EUREKA_SERVER_PORT:8761}/eureka/
+
+---
+
+####################################################################################################
+## test
+####################################################################################################
+
+spring:
+  config:
+    activate:
+      on-profile: test
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database: h2
+    generate-ddl: true
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;MODE=MySQL;
+    username: SA
+    password:
+    initialization-mode: always
+    schema: classpath:schema-h2.sql
+    data: classpath:data-h2.sql
+
+logging:
+  level:
+    com:
+      taes:
+        board: debug
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_SERVER_NAME:localhost}:${EUREKA_SERVER_PORT:8761}/eureka/
+
+---
+
+####################################################################################################
+## dev
+####################################################################################################
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:mysql://${DB_SERVER_NAME:board-db}:${DB_SERVER_PORT:3306}/taes_board
+    username: root
+    password: password
